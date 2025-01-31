@@ -1,8 +1,0 @@
-package com.temelio.repository;
-
-import com.temelio.model.EmailLog;
-import org.springframework.data.jpa.repository.JpaRepository;
-//import org.springframework.data.mongodb.repository.MongoRepository;
-
-public interface EmailLogRepository extends JpaRepository<EmailLog, Long> {}
-//public interface EmailLogRepository extends MongoRepository<EmailLog, String> {}
