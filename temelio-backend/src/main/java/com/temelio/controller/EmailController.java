@@ -22,10 +22,10 @@ public class EmailController {
 
 
     @PostMapping("/send")
-    public ResponseEntity<String> sendEmails(@RequestBody EmailRequestDTO request){
+    public ResponseEntity<String> sendEmails(@RequestBody EmailRequestDTO request) {
         List<Nonprofit> nonprofits = nonprofitService.getAllNonprofits();
-        emailService.sendBulkEmails(request, nonprofits);
-        return ResponseEntity.ok("Emails sent successfully");
+        emailService.sendBulkEmails(request.getSubject(), request.getContentTemplate(), request.getCc(), request.getBcc(), nonprofits);
+        return ResponseEntity.ok("Emails sent successfully!");
     }
 
     @PostMapping("nonprofit")
