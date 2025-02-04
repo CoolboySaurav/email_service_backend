@@ -17,31 +17,44 @@ public class EmailService {
     @Autowired
     private EmailLogRepository emailLogRepository;
 
-    public void sendBulkEmails(EmailRequestDTO request, List<Nonprofit> nonprofits){
-        if(nonprofits.isEmpty()){
+    public void sendBulkEmails(String subject, String contentTemplate, List<String> ccEmails, List<String> bccEmails, List<Nonprofit> nonProfits) {
+        if (nonProfits.isEmpty()) {
             throw new RuntimeException("No nonprofits to send emails to");
         }
+        try {
+            Pattern pattern = Pattern.compile("\\{(.*?)}");
+            Matcher matcher = pattern.matcher(contentTemplate);
 
-        String contentTemplate = request.getContentTemplate();
-        for (Nonprofit nonprofit : nonprofits){
-            String content = contentTemplate
-                    .replace("name", nonprofit.getName())
-                    .replace("address", nonprofit.getAddress());
-            log.info("Sending email to: {}", nonprofit.getEmail());
-            logEmail(nonprofit.getEmail(), request.getSubject(), content);
+            while (matcher.find()) {
+                String key = matcher.group(1);
+                if (!key.equals("name") && !key.equals("address")) {
+                    throw new RuntimeException("Invalid key: " + key);
+                }
+            }
+            for (Nonprofit nonprofit : nonProfits) {
+                String content = contentTemplate
+                        .replace("{name}", nonprofit.getName())
+                        .replace("{address}", nonprofit.getAddress());
 
+                log.info("Sending email to: {}", nonprofit.getEmail());
+                logEmail(nonprofit.getEmail(), subject, content, ccEmails, bccEmails);
+            }
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    private void logEmail(String recipientEmail, String subject, String content){
+    private void logEmail(String recipientEmail, String subject, String content, List<String> ccEmails, List<String> bccEmails) {
         EmailLog log = new EmailLog();
         log.setRecipientEmail(recipientEmail);
-        log.setContent(content);
         log.setSubject(subject);
+        log.setContent(content);
+        log.setCc(ccEmails);
+        log.setBcc(bccEmails);
         log.setSentAt(LocalDateTime.now());
         emailLogRepository.save(log);
     }
-
+    
     public List<EmailLog> getAllEmails() {
         return emailLogRepository.findAll();
     }
